@@ -6,7 +6,7 @@ import sys
 import re
 import os
 
-# 1. 보안 설정 (GitHub Secrets에서 가져옴)
+# 1. 보안 설정
 TELEGRAM_TOKEN = os.environ.get('TELEGRAM_TOKEN')
 CHAT_ID = os.environ.get('CHAT_ID')
 
@@ -38,7 +38,7 @@ def get_google_news(keyword="", limit=3):
             link = item.find('link').text
             news_list.append((title, link))
         return news_list
-    except Exception as e:
+    except Exception:
         return []
 
 def get_weather_info(location="서울"):
@@ -59,24 +59,53 @@ def get_weather_info(location="서울"):
 
 def main():
     output = []
-    anniversaries = {"01-01": "신정", "03-01": "3·1절", "05-05": "어린이날", "06-06": "현충일", "08-15": "광복절", "10-03": "개천절", "10-09": "한글날", "12-25": "크리스마스"}
+    # 요청하신 기념일 및 생일 목록
+    anniversaries = {
+        "01-01": "새해 첫날", 
+        "03-01": "3·1절", 
+        "03-19": "혁재 생일", 
+        "06-03": "내생일", 
+        "08-15": "광복절", 
+        "09-17": "오빠생일", 
+        "10-03": "개천절", 
+        "10-09": "한글날", 
+        "11-29": "혁준이 생일", 
+        "12-03": "도연이 생일", 
+        "12-25": "크리스마스"
+    }
     
     current_time = datetime.datetime.now()
     month_day = current_time.strftime("%m-%d")
     
-    output.append(f"🔔 [데일리 브리핑] {current_time.strftime('%Y-%m-%d %H:%M')}")
+    output.append(f"🔔 [데일리 브리핑] {current_time.strftime('%Y-%m-%d %H:%M')}\n")
     
+    # 1. 기념일 체크 (요청하신 문구 적용)
     if month_day in anniversaries:
-        output.append(f"🎉 오늘은 {anniversaries[month_day]}입니다!")
+        output.append(f"🎉 오늘은 {anniversaries[month_day]}입니다! 뜻깊은 하루 보내세요.\n")
+    else:
+        output.append("오늘은 특별히 지정된 기념일은 없지만, 행복한 하루 보내시길 바랍니다!\n")
     
+    # 2. 날씨 정보
     temp, weather, dust = get_weather_info("제주")
-    output.append(f"\n[🌤️ 제주 날씨]\n🌡️ 온도: {temp}℃\n☁️ 상태: {weather}\n😷 미세먼지: {dust}")
+    output.append(f"[🌤️ 제주 날씨]\n🌡️ 온도: {temp}℃\n☁️ 상태: {weather}\n😷 미세먼지: {dust}\n")
 
-    output.append("\n[📰 주요 뉴스]")
-    head_news = get_google_news(limit=2)
-    jeju_news = get_google_news(keyword="제주", limit=1)
-    for idx, (title, link) in enumerate(head_news + jeju_news, 1):
-        output.append(f"{idx}. {title}\n🔗 {link}")
+    # 3. 주요 뉴스
+    output.append("[📰 주요 뉴스]")
+    all_news = get_google_news(limit=2) + get_google_news(keyword="제주", limit=1)
+    if all_news:
+        for idx, (title, link) in enumerate(all_news, 1):
+            output.append(f"{idx}. {title}\n🔗 {link}")
+    else:
+        output.append("최신 뉴스를 가져오지 못했습니다.")
+
+    # 4. 축제 및 행사 정보 (요청하신 문구 적용)
+    output.append("\n[🎊 제주 축제/행사 소식]")
+    festivals = get_google_news(keyword="제주 축제", limit=2)
+    if festivals:
+        for idx, (title, link) in enumerate(festivals, 1):
+            output.append(f"{idx}. {title}\n🔗 {link}")
+    else:
+        output.append("오늘은 축제가 없음니다")
 
     full_message = "\n".join(output)
     print(full_message)

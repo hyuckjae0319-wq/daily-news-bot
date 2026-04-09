@@ -2,23 +2,37 @@ name: Daily News Alarm
 
 on:
   schedule:
-    # 매일 한국 시간 아침 8시 (UTC 시간 기준 23:00)
-    - cron: '0 23 * * *'
-  workflow_dispatch:      # 수동 실행 버튼 활성화
+    - cron: "0 23 * * *"
+  workflow_dispatch:
 
 jobs:
   run-bot:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: "3.11"
+
+      - name: Validate secrets
+        run: |
+          if [ -z "${{ secrets.TELEGRAM_TOKEN }}" ]; then
+            echo "[ERROR] TELEGRAM_TOKEN secret is not set."
+            exit 1
+          fi
+          if [ -z "${{ secrets.CHAT_ID }}" ]; then
+            echo "[ERROR] CHAT_ID secret is not set."
+            exit 1
+          fi
+          echo "[OK] Secrets verified."
 
       - name: Run Script
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           CHAT_ID: ${{ secrets.CHAT_ID }}
+          TZ: Asia/Seoul
         run: python main.py

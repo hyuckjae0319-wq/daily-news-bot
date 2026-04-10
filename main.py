@@ -32,8 +32,9 @@ def send_telegram(message: str) -> bool:
                 headers={"Content-Type": "application/json", "User-Agent": "Mozilla/5.0"},
                 method="POST"
             )
-            with urllib.request.urlopen(req, timeout=10) as resp:
+            with urllib.request.urlopen(req, timeout=15) as resp:
                 if resp.getcode() != 200:
+                    print(f"[ERROR] Telegram response code: {resp.getcode()}")
                     success = False
         except Exception as e:
             print(f"[ERROR] Telegram send failed: {e}")
@@ -46,7 +47,7 @@ def get_weather_info(location: str = "Jeju") -> tuple:
         encoded = urllib.parse.quote(location)
         url = f"https://wttr.in/{encoded}?format=j1"
         req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-        with urllib.request.urlopen(req, timeout=10) as resp:
+        with urllib.request.urlopen(req, timeout=15) as resp:
             data = json.loads(resp.read().decode("utf-8"))
         current = data["current_condition"][0]
         temp_c = current["temp_C"]
@@ -67,15 +68,23 @@ def get_google_news(keyword: str = "", limit: int = 3) -> list:
         else:
             url = "https://news.google.com/rss?hl=ko&gl=KR&ceid=KR:ko"
         req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-        with urllib.request.urlopen(req, timeout=10) as resp:
+        with urllib.request.urlopen(req, timeout=15) as resp:
             xml_data = resp.read()
         root = ET.fromstring(xml_data)
         news_list = []
         for item in root.findall("./channel/item")[:limit]:
             title_el = item.find("title")
+            # ✅ link가 빈 경우 guid로 fallback
             link_el = item.find("link")
-            if title_el is not None and link_el is not None:
-                link_text = link_el.text or (link_el.tail or "").strip()
+            guid_el = item.find("guid")
+            link_text = ""
+            if link_el is not None:
+                link_text = (link_el.text or "").strip()
+                if not link_text:
+                    link_text = (link_el.tail or "").strip()
+            if not link_text and guid_el is not None:
+                link_text = (guid_el.text or "").strip()
+            if title_el is not None and link_text:
                 news_list.append((title_el.text or "(no title)", link_text))
         return news_list
     except Exception as e:
@@ -103,7 +112,6 @@ def main():
 
     lines = []
 
-    # ✅ 수정: 작은따옴표로 변경
     formatted_time = now.strftime("%Y-%m-%d %H:%M")
     lines.append(f"🔔 <b>[데일리 브리핑]</b> {formatted_time} KST\n")
 

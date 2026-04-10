@@ -1,4 +1,4 @@
-ame: Daily News Alarm
+name: Daily News Alarm
 on:
   schedule:
     - cron: '0 23 * * *'
@@ -6,6 +6,8 @@ on:
 jobs:
   run-bot:
     runs-on: ubuntu-latest
+    env:                                          
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -29,5 +31,4 @@ jobs:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           CHAT_ID: ${{ secrets.CHAT_ID }}
           TZ: Asia/Seoul
-          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true  # ✅ 여기 추가
         run: python main.py

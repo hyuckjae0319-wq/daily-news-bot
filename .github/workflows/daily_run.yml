@@ -1,4 +1,4 @@
-name: Daily News Alarm
+ame: Daily News Alarm
 on:
   schedule:
     - cron: '0 23 * * *'
@@ -29,5 +29,5 @@ jobs:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           CHAT_ID: ${{ secrets.CHAT_ID }}
           TZ: Asia/Seoul
-          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true 
+          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true  # ✅ 여기 추가
         run: python main.py

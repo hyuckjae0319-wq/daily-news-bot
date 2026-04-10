@@ -102,32 +102,28 @@ def main():
     }
 
     lines = []
-    lines.append(f"🔔 <b>[데일리 브리핑]</b> {now.strftime("%Y-%m-%d %H:%M")} KST
-")
+
+    # ✅ 수정: 작은따옴표로 변경
+    formatted_time = now.strftime("%Y-%m-%d %H:%M")
+    lines.append(f"🔔 <b>[데일리 브리핑]</b> {formatted_time} KST\n")
 
     if month_day in anniversaries:
-        lines.append(f"🎉 오늘은 <b>{anniversaries[month_day]}</b>입니다! 뜻깨은 하루 보내세요.
-")
+        lines.append(f"🎉 오늘은 <b>{anniversaries[month_day]}</b>입니다! 뜻깊은 하루 보내세요.\n")
     else:
-        lines.append("오늘은 특별히 지정된 기념일은 없지만, 행복한 하루 보내시길 바랍니다!
-")
+        lines.append("오늘은 특별히 지정된 기념일은 없지만, 행복한 하루 보내시길 바랍니다!\n")
 
     temp, weather, feels = get_weather_info("Jeju")
     lines.append(
-        f"🌤️ <b>제주 날씨</b>
-"
-        f"  🌡️ 현재: {temp}°C  (체감 {feels}°C)
-"
-        f"  ☁️ 상태: {weather}
-"
+        f"🌤️ <b>제주 날씨</b>\n"
+        f"  🌡️ 현재: {temp}°C  (체감 {feels}°C)\n"
+        f"  ☁️ 상태: {weather}\n"
     )
 
     lines.append("📰 <b>주요 뉴스</b>")
     all_news = get_google_news(limit=2) + get_google_news(keyword="제주", limit=1)
     if all_news:
         for idx, (title, link) in enumerate(all_news, 1):
-            lines.append(f"  {idx}. {title}
-     🔗 {link}")
+            lines.append(f"  {idx}. {title}\n     🔗 {link}")
     else:
         lines.append("  최신 뉴스를 가져오지 못했습니다.")
 
@@ -137,13 +133,11 @@ def main():
     festivals = get_google_news(keyword="제주 축제", limit=2)
     if festivals:
         for idx, (title, link) in enumerate(festivals, 1):
-            lines.append(f"  {idx}. {title}
-     🔗 {link}")
+            lines.append(f"  {idx}. {title}\n     🔗 {link}")
     else:
         lines.append("  현재 등록된 축제 소식이 없습니다.")
 
-    full_message = "
-".join(lines)
+    full_message = "\n".join(lines)
     print(full_message)
 
     result = send_telegram(full_message)
